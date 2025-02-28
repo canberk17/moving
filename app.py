@@ -111,24 +111,27 @@ def scrape_bbb(company_name):
         except NoSuchElementException:
             info["Business Name"] = "Not found"
 
-        # --- Check Accreditation using the full container path ---
+        # --- Determine Accreditation (Yes/No) using the new logic ---
         try:
-            # Locate the container that should have the accreditation info.
             accreditation_container = driver.find_element(
                 By.CSS_SELECTOR,
                 "#content > div.page-vertical-padding.bpr-about-body > div > div.with-sidebar > div.sidebar.stack > div:nth-child(5)"
             )
-            # Within this container, search for the accreditation h3 element.
             accreditation_header = accreditation_container.find_element(By.CSS_SELECTOR, "#accreditation > h3")
             text = accreditation_header.text.strip()
             if "is BBB Accredited" in text:
                 info["Accredited"] = "Yes"
-                info["Accreditation Rating"] = text
             else:
                 info["Accredited"] = "No"
-                info["Accreditation Rating"] = "Not available"
         except NoSuchElementException:
             info["Accredited"] = "No"
+
+        # --- Extract Accreditation Rating using the selector for letter grade ---
+        try:
+            accreditation_element = driver.find_element(By.CSS_SELECTOR, "span.bpr-letter-grade")
+            accreditation_rating = accreditation_element.text.strip()
+            info["Accreditation Rating"] = accreditation_rating
+        except NoSuchElementException:
             info["Accreditation Rating"] = "Not available"
 
         # --- Extract Address (combined from two lines) ---
